@@ -44,6 +44,6 @@ To call API from client: TODO add instructions for calling API endpoints from cl
 Make sure config/default.json is setup with AWS credentials, etc.
 
 From main directory, run 
-    node deploy.js
+`node deploy.js`
 
 
