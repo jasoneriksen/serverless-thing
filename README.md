@@ -1,11 +1,19 @@
-Serverless Thing
+*Serverless Thing 
+(a working title)
 
-Runs entirely in Amazon cloud.
+The end goal is a script that deploys an app to AWS and runs without the use of a needy virtual server.
 
-Frontend hosted on S3 and cloudfront. static files and assets with javascript
+**Summary
 
-Backend:
+****Frontend
+S3, cloudfront. Static assets, html, css, images, js.
 
-Gateway API - endpoints for APi calls.
-Lambda functions - API endpoints connect from Gateway API.
-DynamoDB - NoSQL to store stuff
+****API
+Gateway API endpoints that can be called RESTfully. Each endpoint is backed by a Lambda function that handles the business logic.
+
+****Database
+DynamDB
+
+
+**Status
+A basic deployment to S3, Gateway API and Lambda is happening. The script is still very crude.
