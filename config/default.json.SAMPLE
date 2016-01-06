@@ -1,0 +1,30 @@
+{
+    "account": { 
+        "accessKeyId": "YOUR AWS KEY",
+        "secretAccessKey": "YOUR AWS SECRET KEY",
+        "region": "us-east-1",
+        "accountId": "YOUR AWS ACCOUNT ID"
+    },
+    "api": {
+        "id": "",
+        "name": "YOUR API NAME",
+        "description": "a serverless api thing",
+        "enabled": "true"
+    },
+    "deployment": {
+        "id": "",
+        "stageName": "testState",
+        "stageDescription": "a test stage",
+        "description": "a test deployment"
+    },
+    "apiKey": {
+        "id": "STRING",
+        "name": "devKey",
+        "description": "Development API Key",
+        "enabled": "true",
+        "stageKeys": [ "String" ],
+        "createdDate": "Timestamp",
+        "lastUpdatedDate": "Timestamp"
+    }
+}
+
