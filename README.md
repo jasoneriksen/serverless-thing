@@ -38,3 +38,12 @@ The RESTful api goes in the api directory. Name each subdirectory according to t
 The client goes in the public folder
 
 To call API from client: TODO add instructions for calling API endpoints from client
+
+####Deploy
+
+Make sure config/default.json is setup with AWS credentials, etc.
+
+From main directory, run 
+````node deploy.js
+
+
