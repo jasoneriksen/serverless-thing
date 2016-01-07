@@ -1,0 +1,34 @@
+{
+  "name": "serverless-thing",
+  "version": "0.0.4",
+  "description": "a serverless AWS deployment tool",
+  "main": "deploy.js",
+  "dependencies": {
+    "adm-zip": "^0.4.7",
+    "aws-sdk": "^2.2.15",
+    "file-tree-sync": "^0.0.0",
+    "lodash": "^3.10.1",
+    "config": "^1.16.0",
+    "promise": "^7.0.4",
+    "readdir-recursive": "^0.0.4"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "npm test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jasoneriksen/serverless-thing"
+  },
+  "keywords": [
+    "AWS",
+    "serverless",
+    "app"
+  ],
+  "author": "Jason Eriksne",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jasoneriksen/serverless-thing/issues"
+  },
+  "homepage": "https://github.com/jasoneriksen/serverless-thing"
+}

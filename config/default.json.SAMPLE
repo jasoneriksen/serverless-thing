@@ -1,0 +1,21 @@
+{
+    "account": { 
+        "accessKeyId": "XXXXXXXXXX",
+        "secretAccessKey": "XXXXXXXXXXXX",
+        "region": "us-east-1",
+        "accountId": "XXXXXX"
+    },
+    "api": {
+        "id": "",
+        "name": "serverlessTest",
+        "description": "a serverless api thing",
+        "enabled": "true"
+    },
+    "deployment": {
+        "id": "",
+        "stageName": "testState",
+        "stageDescription": "a test stage",
+        "description": "a test deployment"
+    }
+}
+
