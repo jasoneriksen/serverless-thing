@@ -7,7 +7,7 @@ The end goal is a script that deploys an app to AWS that runs without the use of
 ##Benefits
 
 ####Costs 
-Deploying in this manner should be good for keeping costs down if you have a tiny little mico app without a lot of usage. Lambda functions are billed down to 100ms increments, and on the frontend the costs to host content through S3 are pretty minimal if you're not serving up big files.
+Deploying in this manner should be good for keeping costs down if you have a tiny little micro app without a lot of usage. Lambda functions are billed down to 100ms increments, and on the frontend the costs to host content through S3 are pretty minimal if you're not serving up big files.
 
 ####Scalability
 Since an app deployed in this manner is running on the Amazon infrastructure, it should be able to scale to handle larger traffic without any fuss.
