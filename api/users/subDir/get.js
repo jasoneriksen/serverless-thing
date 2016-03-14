@@ -9,7 +9,7 @@ exports.handler = function getName(event, context) {
         context: context,
         event: event
     };
-    //echo back to the user 
-    context.done(result);
+    //echo something back to the user 
+    context.done(null, result);
 };
 

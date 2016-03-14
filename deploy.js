@@ -17,10 +17,9 @@ var error = function(msg, error) {
 
 build.createAPI(config)
 .then(build.getResources)
-//.then(build.getMethods)
+.then(build.createPublicBucket)
+.then(build.syncPublicContent)
 .then(build.createResources)
-//.then(build.createMethods)
-//.then(build.createDeployment)
 .then(success)
 .catch(error);
 

@@ -10,6 +10,6 @@ exports.handler = function getName(event, context) {
         event: event
     };
     //echo back to the user 
-    context.done(result);
+    context.done(null, result);
 };
 

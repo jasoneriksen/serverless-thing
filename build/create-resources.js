@@ -13,6 +13,7 @@ var apigateway = new AWS.APIGateway();
 var lambda = new AWS.Lambda();
 
 module.exports = function(data) {
+    console.log('Create Resources');
 
     this.getMethodTree = function() {
         return treeify(methodDir, ['.*']);
@@ -29,10 +30,6 @@ module.exports = function(data) {
             return resource.path === parentPath; 
         })[0];
 
-        console.log("GET PARENT ID");
-        console.log(path);
-        console.log(parentPath);
-        console.log(parent.id);
         return parent.id;
     };
 
@@ -44,16 +41,12 @@ module.exports = function(data) {
                 restApiId: data.api.id
             };
 
-            console.log("CREATE RESOURCE PARAMS:");
-            console.log(resourceParams);
-
             apigateway.createResource(resourceParams, function (error, result) {
                 if (error) {
-                    reject("ERROR creating Resource", error);
+                    console.log("ERROR creating Resource", error);
+                    reject(error);
                 }
                 else {
-                    console.log("CREATED RESOURCE");
-                    console.log(result);
                     data.remoteResources = data.remoteResources || [];
                     data.remoteResources.push(result);
                     resolve(data);
@@ -62,11 +55,6 @@ module.exports = function(data) {
         });
     };
 
-    this.deleteUnusedResources = function() {
-         
-    };
-
-
     this.getLambdaFunctionName = function(node) {
         var relativePath = node.relativePath.replace('/',' ').replace('.js','');
         return _.camelCase(data.api.name + ' ' + relativePath);
@@ -74,24 +62,15 @@ module.exports = function(data) {
     
     this.hasRemote = {
         method: function(node, parent) {
-            console.log("HAS REMOTE METHOD?");
             return new Promise(function( resolve, reject ) {
-                console.log("GET FUNCTION B4");
                 var methodType = node.name.split('.')[0].toUpperCase();
                 var methodName = this.getLambdaFunctionName(node);
-                console.log(methodName);
                 lambda.getFunction({ FunctionName: methodName }, function(err, result) {
-
-                    console.log("GET FUNCTION ERR RES:");
-                    console.log(err);
-                    console.log(result);
-
                     resolve(!err);
                 });
             });
         },
         resource: function(node, parent) {
-            console.log("HAS REMOTE RESOURCE?");
             return new Promise(function( resolve, reject ) {
                 var hasRemote = _.findWhere(data.remoteResources, { 
                     'path': '/' + node.relativePath
@@ -102,28 +81,24 @@ module.exports = function(data) {
     };
 
     this.syncRemoteItem = function( type, node, parent ) {
-        console.log("SYNC REMOTE ITEM");
-        console.log(type);
-        console.log(node);
-        console.log(parent);
         return new Promise(function( resolve, reject ) {
             this.hasRemote[type](node, parent)
                 .then(function(hasRemote) {
-                    console.log("HAS REMOTE:");
-                    console.log(hasRemote);
 
                     var changeRemote = hasRemote
                         ? this.updateRemote
                         : this.createRemote;
                     changeRemote[type](node, parent)
                         .then(resolve)
-                        .catch(reject)
+                        .catch(function(err){
+                            console.log("ERROR: ", err);
+                            reject(err);
+                        });
                 });
         }); 
     };
 
     this.makeZip = function(filePath) {
-        console.log("MAKE ZIP");
         var zip = new AdmZip();
         zip.addLocalFile(filePath);
         return zip.toBuffer();
@@ -131,9 +106,7 @@ module.exports = function(data) {
    
     /* receives data as a buffer */ 
     this.encodeToBase64 = function(buff) {
-        console.log("ENCODE TO BASE 64");
         var base64data = buff.toString('base64');
-        console.log("BUFF TO STRING:");
         //return base64data;
         return buff;
     };
@@ -153,8 +126,6 @@ module.exports = function(data) {
                     reject(err);
                 }
                 else {
-                    console.log("UPDATED LAMBDA FUNCTION");
-                    console.log(result);
                     resolve(result);
                 }
             });
@@ -162,8 +133,6 @@ module.exports = function(data) {
     };
     
     this.createLambdaFunction = function(zipBuffer, moduleName, functionName) {
-
-        console.log("CREATING LAMBDA FUNCTION");
         var lambdaFunctionName = 'arn:aws:lambda:' + region + ':' + config.account.accountId + ':function:' + functionName;
         var createParams = { 
             Code: { 
@@ -179,8 +148,6 @@ module.exports = function(data) {
             Timeout: 3 
         };
 
-        console.log("PARAMS");
-
         return new Promise(function(resolve, reject) {
             lambda.createFunction(createParams, function(err, result) {
                 if (err) {
@@ -189,11 +156,8 @@ module.exports = function(data) {
                     reject(err);
                 }
                 else {
-                    console.log("CREATED LAMBDA FUNCTION");
-                    console.log(result);
                     data.remoteLambdaFunctions = data.remoteLambdaFunctions || [];
                     data.remoteLambdaFunctions.push(result);
-
                     resolve(result);
                 }
             });
@@ -215,9 +179,9 @@ module.exports = function(data) {
             });
         });
     };
-    
+   
+    //a passthrough 
     this.updateAPIMethod = function(lambdaFunction, node, parent, method) {
-        console.log("UPDATE API METHOD (passthrough)");
         return new Promise(function(resolve, reject) {
             resolve(data);
         });
@@ -242,30 +206,30 @@ module.exports = function(data) {
             uri: arn
         };
 
-        console.log('addLambdaIntegrationToAPIFunction');
-        console.log(params);
-
         return new Promise(function(resolve, reject) {
             apigateway.putIntegration(params, function(err, result) {
-                if (err) reject(err);
+                if (err) {
+                    console.log("ERROR: ", err);
+                    reject(err);
+                }
                 else resolve(result);
             });
         });
     };
     
     this.linkAPIMethodToLambdaFunction = function(lambdaFunction, node, parent) {
-        console.log("LINK API METHOD TO LAMBDA FUNCTION");
         return new Promise(function(resolve, reject) {
             this.hasAPIMethod(this.getMethodType(node), this.getParentId(node.relativePath))
                 .then(function(method){
-                    console.log("HAS API METHOD RESULT")
-                    console.log(method);
                     if(method) {
                         this.updateAPIMethod(lambdaFunction, node, parent, method)
                             .then(function(newMethod){
                                 this.addLambdaIntegrationToAPIFunction(lambdaFunction, node)
                                     .then(resolve)
-                                    .catch(reject);
+                                    .catch(function(err){
+                                        console.log("ERROR: ", err);
+                                        reject(err);
+                                    });
                             })
                             .catch(reject);
                     } else {
@@ -273,7 +237,10 @@ module.exports = function(data) {
                             .then(function(newMethod){
                                 this.addLambdaIntegrationToAPIFunction(lambdaFunction, node)
                                     .then(resolve)
-                                    .catch(reject);
+                                    .catch(function(err){
+                                        console.log("ERROR: ", err);
+                                        reject(err);
+                                    });
                             })
                             .catch(reject);
                     }
@@ -283,7 +250,6 @@ module.exports = function(data) {
     };
 
     this.createAPIMethod = function(lambdaFunction, node, parent) {
-        console.log("CREATE API METHOD");
         return new Promise(function(resolve, reject) {
             var params = {
                 authorizationType: 'NONE',
@@ -293,7 +259,10 @@ module.exports = function(data) {
                 apiKeyRequired: false
             };
             apigateway.putMethod(params, function(err, result) {
-                if (err) reject(err);
+                if (err) {
+                    console.log("ERROR createApiMethod ", err);
+                    reject(err);
+                }
                 else resolve(result);
             });
         });
@@ -301,9 +270,6 @@ module.exports = function(data) {
 
     this.updateRemote = {
         method: function(node, parent) {
-            console.log("UPDATE REMOTE METHOD");
-            console.log(node);
-            console.log(parent);
 
             return new Promise(function(resolve, reject) {
                 var zipData = this.encodeToBase64(
@@ -313,51 +279,56 @@ module.exports = function(data) {
                     .then(function(result){
                         linkAPIMethodToLambdaFunction(result, node, parent)
                             .then(resolve)
-                            .catch(reject);
+                            .catch(function(err){
+                                console.log("ERROR: ", err);
+                                reject(err);
+                            });
                     })
-                    .catch(reject);
+                    .catch(function(err){
+                        console.log("ERROR: ", err);
+                        reject(err)
+                    });
             }); 
         },
         resource: function(node, parent) {
-            console.log("UPDATE REMOTE RESOURCE");
-            console.log(node);
-            console.log(parent);
             return new Promise(function(resolve, reject) {
                     this.traverseMethodTree(node.files, node)
                     .then(resolve)
-                    .catch(reject);
+                    .catch(function(err) {
+                        console.log("ERROR: ", err);
+                        reject(err);
+                    });
             }); 
         }
     };
 
     this.createRemote = {
         method: function(node, parent) {
-            console.log("CREATE REMOTE METHOD");
-            
             return new Promise(function(resolve, reject) {
                 var zipData = this.encodeToBase64(
                     this.makeZip(node.fullpath)
                 );
-                console.log("CREATE LAMBDA FUNCTION");
                 this.createLambdaFunction(zipData, node.name.replace('.js',''), this.getLambdaFunctionName(node))
                     .then(function(result){
                         linkAPIMethodToLambdaFunction(result, node, parent)
                             .then(resolve)
-                            .catch(reject);
+                            .catch(function(err) {
+                                console.log("ERROR: ", err);
+                                reject(err);
+                            });
                     })
                     .catch(reject);
             }); 
         },
         resource: function(node, parent) {
-            console.log("CREATE REMOTE RESOURCE");
-            console.log(node);
-            console.log(parent);
-            
             return new Promise(function(resolve, reject) {
                 this.createResource(node)
                     .then(function(){ this.traverseMethodTree(node.files, node);})
                     .then(resolve)
-                    .catch(reject);
+                    .catch(function(err) {
+                        console.log("ERROR: ", err);
+                        reject(err);
+                    });
             }); 
         }
     };
@@ -380,26 +351,35 @@ module.exports = function(data) {
      * parent is a node
      *
      */
-    this.processNodes = function(tree, index, parent) {
+    this.processNode = function(tree, index, parent) {
         var node = tree[index];
+
         return new Promise( function(resolve, reject) {
             this.syncRemoteItem(this.getItemType(node), node, parent)
                 .then(function(){
                     index += 1;
-                    if(index >= tree.length) resolve(data);
-                    else this.processNodes(tree, index, parent); 
+                    if(index >= tree.length) {
+                        resolve(data);
+                    }
+                    else this.processNode(tree, index, parent); 
                 })
-                .catch(reject);
+                .catch(function(err){
+                    console.log("ERROR: ", err);
+                    reject(err);
+                });
         });
     };
 
     this.traverseMethodTree = function(tree, parent) {
         return new Promise( function(resolve, reject) {
-            console.log("ENTERING LOOP");
-            console.log(tree[0]);
-            this.processNodes(tree, 0, parent)
-                .then(function(){resolve(data);})
-                .catch(reject);
+            this.processNode(tree, 0, parent)
+            .then(function(){
+                resolve(data);
+            })
+            .catch(function(err){
+                console.log("ERROR: ", err); 
+                reject(err);
+            });
         });
     };
 
@@ -408,13 +388,16 @@ module.exports = function(data) {
         var parent = {
             relativePath: ''    
         };
-        console.log("TRAVERSING MAIN METHOD TREE");
         this.traverseMethodTree(data.methodTree, parent)
-            .then(function(){
-                console.log("DONE TRAVERSING MAIN METHOD TREE"); 
-                resolve(data);
-            })
-            .catch(reject);
+        .then(function(){
+            console.log('resolve');
+            resolve(data);
+        })
+        .catch(function(err){
+            console.log("ERROR: ", err); 
+            reject(err);
+
+        });
     };
 
     return new Promise(this.promise);

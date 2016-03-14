@@ -1,6 +1,6 @@
 var AWS = require('../aws-setup');
 var Promise = require('promise');
-var getLambdaBucket = require('./get-lambda-bucket');
+var getPublicBucket = require('./get-public-bucket');
 var helpers = require('../lib/helpers');
 
 var getBucketConfiguration = function(data) {
@@ -11,21 +11,23 @@ var getBucketConfiguration = function(data) {
 }
 
 module.exports = function(data) {
+    console.log('Create Public Bucket');
+
     var params = {
-        Bucket: helpers.getLambdaBucketName(data),
-        ACL: 'private'
+        Bucket: helpers.getPublicBucketName(data),
+        ACL: 'public-read'
     };
     var bucketConfig = getBucketConfiguration(data);
     if(bucketConfig) {
         CreateBucketConfiguration: getBucketConfiguration(data)
     }
 
-    this.createLambdaBucket = function(resolve, reject) {
+    this.createPublicBucket = function(resolve, reject) {
         var s3 = new AWS.S3();
         s3.createBucket(params, function(err, results) {
-            data.lambdaBucket = helpers.getLambdaBucketName(data);
+            data.publicBucket = helpers.getPublicBucketName(data);
             if (err) {
-                console.log("ERROR CREATING LAMBDA BUCKET ", err);
+                console.log("ERROR CREATING PUBLIC BUCKET ", err);
                 reject(err); 
             }
             else {
@@ -35,14 +37,14 @@ module.exports = function(data) {
     };
     
     this.promise = function(resolve, reject) {
-        getLambdaBucket(data)
+        getPublicBucket(data)
             .then(function(bucketExists){
                 if(bucketExists) { 
-                    data.lambdaBucket = helpers.getLambdaBucketName(data);
+                    data.publicBucket = helpers.getPublicBucketName(data);
                     resolve(data);
                 } 
                 else { 
-                    this.createLambdaBucket(resolve, reject); 
+                    this.createPublicBucket(resolve, reject); 
                 }
             })
             .catch(reject);
