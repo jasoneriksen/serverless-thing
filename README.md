@@ -43,7 +43,7 @@ To call API from client: TODO add instructions for calling API endpoints from cl
 
 ####Deploy
 
-Make sure config/default.json is setup with AWS credentials, etc.
+Copy config/default.json.sample to config/default.json and add your AWS credentials and other information for the deployment.
 
 From main directory, run 
 `node deploy.js`
