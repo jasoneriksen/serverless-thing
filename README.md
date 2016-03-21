@@ -48,4 +48,27 @@ Copy config/default.json.sample to config/default.json and add your AWS credenti
 From main directory, run 
 `node deploy.js`
 
+####Accessing on web
+The deployment tool will create and sync an S3 bucket to serve as a public website. You can point any browser to the bucket name to access the content. If you want your bucket accessible from your domain, you must configure the domain section in config/default.json. The domain section has a name property and an array of 0 or more aliases.
+
+Example:
+
+Your canonical domain is:
+www.example.com
+
+You also want the following subdomains to redirect to your canonical domain:
+example.com, and cats.example.com
+
+The domain section of your config should look like this:
+
+"domain" : {
+    "name": "www.example.com",
+    "aliases": ["example.com", "cats.example.com"]
+}
+
+Edit your DNS settings to point to the S3 bucket. In this example, you would create a CNAME for the www subdomain to point to the S3 bucket, then create CNAMEs for @ and cats and point them to www.example.com. Your final DNS would look something like this:
+
+@       CNAME   www.example.com 
+www     CNAME   www.example.com.s3-website-us-east-1.amazonaws.com
+cats    CNAME   www.example.com
 

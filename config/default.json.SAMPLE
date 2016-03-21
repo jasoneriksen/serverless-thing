@@ -5,6 +5,10 @@
         "region": "us-east-1",
         "accountId": "YOUR AWS ACCOUNT ID"
     },
+    "domain": {
+        "name": "www.example.com",
+        "aliases": ["example.com", "cats.example.com"]
+    },
     "api": {
         "id": "",
         "name": "YOUR API NAME",
