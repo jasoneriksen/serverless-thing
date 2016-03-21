@@ -61,14 +61,17 @@ example.com, and cats.example.com
 
 The domain section of your config should look like this:
 
+`
 "domain" : {
     "name": "www.example.com",
     "aliases": ["example.com", "cats.example.com"]
 }
+`
 
 Edit your DNS settings to point to the S3 bucket. In this example, you would create a CNAME for the www subdomain to point to the S3 bucket, then create CNAMEs for @ and cats and point them to www.example.com. Your final DNS would look something like this:
 
+`
 @       CNAME   www.example.com 
 www     CNAME   www.example.com.s3-website-us-east-1.amazonaws.com
 cats    CNAME   www.example.com
-
+`
